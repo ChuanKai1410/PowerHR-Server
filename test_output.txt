@@ -1,0 +1,47 @@
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/SCSM11/Documents/UTM Y3S1/SAD/PowerHR-Server[39m
+
+(node:16124) [FSTDEP021] DeprecationWarning: You are using the deprecated json shorthand schema on route /log/:companyId. Specify full object schema instead. It will be removed in `fastify@v5`
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould create a ticket with attachment[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa029
+
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould create a ticket with attachment
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould list tickets with filters[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa031
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa037
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould update ticket status (Admin)[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa040
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould close ticket[22m[39m
+[TicketObserver] Logged status change for ticket 69929ae6912386daa6ffa040
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould close ticket[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa048
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould close ticket[22m[39m
+[TicketObserver] Logged closure for ticket 69929ae6912386daa6ffa048
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould export report as PDF[22m[39m
+[TicketObserver] Logged status change for ticket 69929ae6912386daa6ffa048
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould export report as PDF[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa052
+
+[90mstdout[2m | test/ticketing.test.js[2m > [22m[2mTicketing Module[2m > [22m[2mshould export report as Excel[22m[39m
+[TicketObserver] Logged creation for ticket 69929ae6912386daa6ffa058
+
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould list tickets with filters
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould update ticket status (Admin)
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould close ticket
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould export report as PDF
+ [32mΓ£ô[39m test/ticketing.test.js[2m > [22mTicketing Module[2m > [22mshould export report as Excel
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 12:19:47
+[2m   Duration [22m 3.13s[2m (transform 74ms, setup 848ms, collect 134ms, tests 1.61s, environment 0ms, prepare 189ms)[22m
+
+JSON report written to C:/Users/SCSM11/Documents/UTM Y3S1/SAD/PowerHR-Server/report/json-report.json
+JUNIT report written to C:/Users/SCSM11/Documents/UTM Y3S1/SAD/PowerHR-Server/report/junit-report.xml
