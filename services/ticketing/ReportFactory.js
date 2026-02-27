@@ -13,18 +13,19 @@ class PdfReport extends ReportStrategy {
         reply.header('Content-Type', 'application/pdf');
         reply.header('Content-Disposition', 'attachment; filename=ticket_report.pdf');
 
-        // Send the document stream
         reply.send(doc);
 
         doc.fontSize(20).text('Ticket Report', { align: 'center' });
         doc.moveDown();
 
         data.forEach(ticket => {
-            doc.fontSize(12).text(`Title: ${ticket.title}`);
+            doc.fontSize(12).text(`Ticket ID: ${ticket.ticketId || '-'}`);
+            doc.text(`Title: ${ticket.title}`);
             doc.text(`Status: ${ticket.status}`);
             doc.text(`Category: ${ticket.category}`);
             doc.text(`Priority: ${ticket.priority}`);
-            doc.text(`Created By: ${ticket.createdBy?.name || ticket.createdBy?.toString() || 'Unknown'}`); // Assuming population or ID
+            doc.text(`Submitted By: ${ticket.submittedByName || ticket.submittedBy?.toString() || 'Unknown'}`);
+            doc.text(`Email: ${ticket.submittedByEmail || '-'}`);
             doc.text(`Date: ${new Date(ticket.createdAt).toLocaleDateString()}`);
             doc.moveDown();
             doc.text('-----------------------------------');
@@ -41,24 +42,26 @@ class ExcelReport extends ReportStrategy {
         const sheet = workbook.addWorksheet('Tickets');
 
         sheet.columns = [
-            { header: 'ID', key: '_id', width: 25 },
+            { header: 'Ticket ID', key: 'ticketId', width: 15 },
             { header: 'Title', key: 'title', width: 30 },
             { header: 'Status', key: 'status', width: 15 },
             { header: 'Category', key: 'category', width: 15 },
             { header: 'Priority', key: 'priority', width: 15 },
-            { header: 'Created By', key: 'createdBy', width: 25 },
-            { header: 'Created At', key: 'createdAt', width: 20 }
+            { header: 'Submitted By', key: 'submittedByName', width: 25 },
+            { header: 'Email', key: 'submittedByEmail', width: 30 },
+            { header: 'Created At', key: 'createdAt', width: 20 },
         ];
 
         data.forEach(ticket => {
             sheet.addRow({
-                _id: ticket._id.toString(),
+                ticketId: ticket.ticketId || '-',
                 title: ticket.title,
                 status: ticket.status,
                 category: ticket.category,
                 priority: ticket.priority,
-                createdBy: ticket.createdBy?.name || ticket.createdBy?.toString() || 'Unknown',
-                createdAt: new Date(ticket.createdAt).toLocaleString()
+                submittedByName: ticket.submittedByName || 'Unknown',
+                submittedByEmail: ticket.submittedByEmail || '-',
+                createdAt: new Date(ticket.createdAt).toLocaleString(),
             });
         });
 

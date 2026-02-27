@@ -1,5 +1,6 @@
 import path from 'path';
 import AutoLoad from '@fastify/autoload';
+import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
@@ -55,6 +56,13 @@ export default async function (fastify, opts) {
 
     // Do not touch the following lines
 
+    // Serve uploaded files (ticket attachments) as static assets at /uploads/...
+    fastify.register(fastifyStatic, {
+        root: path.join(__dirname, 'public'),
+        prefix: '/public/',
+        decorateReply: false,
+    });
+
     // This loads all plugins defined in plugins
     // those should be support plugins that are reused
     // through your application
@@ -70,8 +78,9 @@ export default async function (fastify, opts) {
             const { authorization } = request.headers;
 
             if (authorization) {
-                const token = authorization.split(' ')[1];
-                const data = await request.jwtVerify(token);
+                // request.jwtVerify() reads the Bearer token from the
+                // Authorization header automatically — do NOT pass the token string manually
+                const data = await request.jwtVerify();
                 request.user = data;
             }
         } catch (error) {

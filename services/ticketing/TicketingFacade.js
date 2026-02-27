@@ -1,7 +1,10 @@
 import TicketService from './TicketService.js';
 import ReportFactory from './ReportFactory.js';
+import ApiError from '../../util/ApiError.js';
 import fs from 'fs';
 import path from 'path';
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
 
 class TicketingFacade {
     async submitTicket(data, userId) {
@@ -16,23 +19,33 @@ class TicketingFacade {
         const description = extractValue(data.description);
         const category = extractValue(data.category);
         const priority = extractValue(data.priority);
-        const file = data.file;
-        let attachmentUrl = null;
+        const attachments = [];
 
-        if (file) {
-            // Handle file upload
-            const filename = `ticket-${Date.now()}-${file.filename}`;
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        // Support both single file (data.files as object) and multiple files (data.files as array)
+        const rawFiles = data.files
+            ? Array.isArray(data.files) ? data.files : [data.files]
+            : [];
 
-            // Ensure directory exists
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir, { recursive: true });
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        for (const file of rawFiles) {
+            // Validate — only JPEG and PNG allowed
+            if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+                throw new ApiError(400, 'Only JPEG and PNG image files are allowed as attachments');
             }
 
+            const filename = `ticket-${Date.now()}-${file.filename}`;
             const filepath = path.join(uploadDir, filename);
             const buffer = await file.toBuffer();
             fs.writeFileSync(filepath, buffer);
-            attachmentUrl = `/uploads/${filename}`;
+
+            attachments.push({
+                url: `/uploads/${filename}`,
+                filename: file.filename,
+            });
         }
 
         return await TicketService.createTicket({
@@ -40,12 +53,24 @@ class TicketingFacade {
             description,
             category,
             priority,
-            attachmentUrl
+            attachments,
         }, userId);
+    }
+
+    async getMyTickets(userId, filters = {}) {
+        return await TicketService.getTickets({ ...filters, submittedBy: userId });
     }
 
     async getTickets(filters) {
         return await TicketService.getTickets(filters);
+    }
+
+    async getTicketById(id) {
+        return await TicketService.getTicketById(id);
+    }
+
+    async updateTicketInfo(id, userId, data) {
+        return await TicketService.updateTicketInfo(id, userId, data);
     }
 
     async updateTicketStatus(id, status, adminId) {

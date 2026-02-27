@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
         enum: ['Male', 'Female', 'Prefer not to say'],
         required: true,
     },
-});
+},
+    { timestamps: true });
 
 userSchema.methods.comparePassword = async function (password) {
     const compare = await bcrypt.compare(password, this.password);
@@ -79,6 +80,6 @@ userSchema.pre('create', async function (next) {
     next();
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;

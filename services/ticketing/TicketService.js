@@ -1,16 +1,26 @@
 import Ticket from '../../models/ticketing/Ticket.js';
+import User from '../../models/users/user.js';
 import TicketObserver from './TicketObserver.js';
+import ApiError from '../../util/ApiError.js';
 
 class TicketService {
     async createTicket(data, userId) {
+        // Look up user to get email + name for denormalized fields
+        const user = await User.findById(userId);
+        if (!user) throw new ApiError(404, 'User not found');
+
         const ticket = await Ticket.create({
             ...data,
-            createdBy: userId
+            submittedBy: userId,
+            submittedByEmail: user.email,
+            submittedByName: `${user.firstName} ${user.lastName}`,
         });
+
         TicketObserver.emit('ticketCreated', {
             ticketId: ticket._id,
-            performedBy: userId
+            performedBy: userId,
         });
+
         return ticket;
     }
 
@@ -22,21 +32,45 @@ class TicketService {
         if (filters.startDate && filters.endDate) {
             query.createdAt = {
                 $gte: new Date(filters.startDate),
-                $lte: new Date(filters.endDate)
+                $lte: new Date(filters.endDate),
             };
         }
-        if (filters.createdBy) query.createdBy = filters.createdBy;
+        if (filters.submittedBy) query.submittedBy = filters.submittedBy;
 
-        return await Ticket.find(query).populate('createdBy', 'name email').sort({ createdAt: -1 });
+        return await Ticket.find(query)
+            .populate('submittedBy', 'firstName lastName email')
+            .sort({ createdAt: -1 });
     }
 
     async getTicketById(id) {
-        return await Ticket.findById(id).populate('createdBy', 'name email');
+        const ticket = await Ticket.findById(id)
+            .populate('submittedBy', 'firstName lastName email');
+        if (!ticket) throw new ApiError(404, 'Ticket not found');
+        return ticket;
+    }
+
+    async updateTicketInfo(id, userId, data) {
+        const ticket = await Ticket.findById(id);
+        if (!ticket) throw new ApiError(404, 'Ticket not found');
+        if (ticket.submittedBy.toString() !== userId.toString()) {
+            throw new ApiError(403, 'You are not allowed to update this ticket');
+        }
+        if (ticket.status === 'Closed') {
+            throw new ApiError(400, 'Cannot update a closed ticket');
+        }
+
+        const allowedFields = ['title', 'description', 'category', 'priority'];
+        allowedFields.forEach((field) => {
+            if (data[field] !== undefined) ticket[field] = data[field];
+        });
+
+        await ticket.save();
+        return ticket;
     }
 
     async updateTicketStatus(id, status, userId) {
         const ticket = await Ticket.findById(id);
-        if (!ticket) throw new Error('Ticket not found');
+        if (!ticket) throw new ApiError(404, 'Ticket not found');
 
         const oldStatus = ticket.status;
         ticket.status = status;
@@ -45,7 +79,7 @@ class TicketService {
             ticket.closedAt = new Date();
             TicketObserver.emit('ticketClosed', {
                 ticketId: ticket._id,
-                performedBy: userId
+                performedBy: userId,
             });
         }
 
@@ -55,7 +89,7 @@ class TicketService {
             ticketId: ticket._id,
             oldStatus,
             newStatus: status,
-            performedBy: userId
+            performedBy: userId,
         });
 
         return ticket;

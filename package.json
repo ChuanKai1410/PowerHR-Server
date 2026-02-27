@@ -14,7 +14,7 @@
         "lint": "eslint .",
         "prettier": "prettier --config .prettierrc --write .",
         "prettier:check": "prettier --config .prettierrc --check .",
-        "dev": "fastify start -w -l info -P app.js"
+        "dev": "fastify start -w -l info -P --ignore-watch public app.js"
     },
     "keywords": [],
     "author": "",
