@@ -99,7 +99,7 @@ class AuthController {
 
         const userPublic = await this.userFactory.getMe(user._id);
 
-        const token = Jwt.generateToken({ id: user._id, type: 'access', company: user?.company }, '1d');
+        const token = Jwt.generateToken({ id: user._id, type: 'access', company: user?.company, __t: user.__t }, '1d');
 
         return { user: userPublic, token };
     }

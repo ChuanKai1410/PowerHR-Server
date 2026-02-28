@@ -72,8 +72,21 @@ export default async function (fastify, opts) {
         options: Object.assign({}, opts),
     });
 
+    // Routes that must NOT block on expired/missing JWT
+    const PUBLIC_PATHS = [
+        '/company/register',
+        '/company/check',
+        '/auth/login',
+        '/auth/register',
+        '/auth/forgot-password',
+        '/auth/activate',
+        '/auth/reset-password',
+        '/job',          // public job listings
+    ];
+
     //Read bearer token from request header
     fastify.addHook('preHandler', async (request, reply) => {
+        const isPublic = PUBLIC_PATHS.some((path) => request.url.startsWith(path));
         try {
             const { authorization } = request.headers;
 
@@ -84,6 +97,10 @@ export default async function (fastify, opts) {
                 request.user = data;
             }
         } catch (error) {
+            if (isPublic) {
+                // Don't block public routes — the frontend sends stale tokens here too
+                return;
+            }
             request.log.error(error);
             reply.status(401).send({ error: 'Unauthorized' });
         }

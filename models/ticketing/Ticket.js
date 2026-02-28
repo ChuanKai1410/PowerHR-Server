@@ -55,6 +55,18 @@ const ticketSchema = new mongoose.Schema({
             filename: { type: String },
         },
     ],
+    statusUpdates: [
+        {
+            status: { type: String, required: true },
+            description: { type: String, required: true },
+            attachment: {
+                url: { type: String },
+                filename: { type: String },
+            },
+            updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            updatedAt: { type: Date, default: Date.now }
+        }
+    ],
     closedAt: {
         type: Date,
     },

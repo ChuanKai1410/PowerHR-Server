@@ -40,15 +40,15 @@ class CompanyController {
             const password = Math.random().toString(36).substring(2, 10);
 
             await this.authFacade.register('employee', {
-                firstName: 'Admin',
-                lastName: '1',
+                firstName: 'HR',
+                lastName: 'Manager',
                 email: adminEmail,
                 personalEmail: adminEmail,
                 gender: 'Prefer not to say',
                 password,
                 confirmPassword: password,
                 company: company._id,
-                jobTitle: 'Admin',
+                jobTitle: 'HR Manager',
                 department: department._id,
                 salary: 0,
             });
@@ -77,6 +77,11 @@ class CompanyController {
     }
 
     async getCompanyDetail(companyId) {
+        const mongoose = (await import('mongoose')).default;
+        if (!mongoose.isValidObjectId(companyId)) {
+            throw new ApiError(404, 'Company not found');
+        }
+
         const company = await Company.findById(companyId);
 
         // find all branches

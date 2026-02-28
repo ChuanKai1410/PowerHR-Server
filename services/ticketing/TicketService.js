@@ -68,7 +68,7 @@ class TicketService {
         return ticket;
     }
 
-    async updateTicketStatus(id, status, userId) {
+    async updateTicketStatus(id, status, description, attachment, userId) {
         const ticket = await Ticket.findById(id);
         if (!ticket) throw new ApiError(404, 'Ticket not found');
 
@@ -83,6 +83,14 @@ class TicketService {
             });
         }
 
+        // Add history record for the update
+        ticket.statusUpdates.push({
+            status,
+            description,
+            attachment,
+            updatedBy: userId,
+        });
+
         await ticket.save();
 
         TicketObserver.emit('statusChanged', {
@@ -90,13 +98,14 @@ class TicketService {
             oldStatus,
             newStatus: status,
             performedBy: userId,
+            description
         });
 
         return ticket;
     }
 
     async closeTicket(id, userId) {
-        return this.updateTicketStatus(id, 'Closed', userId);
+        return this.updateTicketStatus(id, 'Closed', 'Ticket closed manually', null, userId);
     }
 }
 

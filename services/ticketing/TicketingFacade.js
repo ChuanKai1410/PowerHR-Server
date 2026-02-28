@@ -73,8 +73,59 @@ class TicketingFacade {
         return await TicketService.updateTicketInfo(id, userId, data);
     }
 
-    async updateTicketStatus(id, status, adminId) {
-        return await TicketService.updateTicketStatus(id, status, adminId);
+    async updateTicketStatus(request) {
+        const extractValue = (field) => {
+            if (field && typeof field === 'object' && field.value !== undefined) {
+                return field.value;
+            }
+            return field;
+        };
+
+        const body = request.body || {};
+        const status = extractValue(body.status);
+        const description = extractValue(body.description);
+        let attachment = null;
+
+        if (!status || !description) {
+            throw new ApiError(400, 'Status and description are required for updating a ticket');
+        }
+
+        const rawFiles = body.file
+            ? Array.isArray(body.file) ? body.file : [body.file]
+            : [];
+
+        if (rawFiles.length > 0) {
+            const file = rawFiles[0]; // expect 1 file max
+            // Validate — only JPEG, PNG, PDF allowed
+            // (assuming UI allows PDF as we saw in UpdateTicket.jsx accept prop)
+            const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+            if (!allowedTypes.includes(file.mimetype)) {
+                throw new ApiError(400, 'Only JPEG, PNG, and PDF files are allowed as attachments');
+            }
+
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            const filename = `status-${Date.now()}-${file.filename}`;
+            const filepath = path.join(uploadDir, filename);
+            const buffer = await file.toBuffer();
+            fs.writeFileSync(filepath, buffer);
+
+            attachment = {
+                url: `/uploads/${filename}`,
+                filename: file.filename,
+            };
+        }
+
+        return await TicketService.updateTicketStatus(
+            request.params.id,
+            status,
+            description,
+            attachment,
+            request.user.id
+        );
     }
 
     async closeTicket(id, userId) {

@@ -5,7 +5,16 @@ import ApiError from '../../util/ApiError.js';
 function requireAdmin(request, reply, done) {
     const role = request.user?.__t;
     if (!role || role === 'Applicant') {
-        return reply.status(403).send({ error: 'Access denied: Admins and Employees only' });
+        return reply.status(403).send({ error: 'Access denied: Employees and SysAdmin only' });
+    }
+    done();
+}
+
+// Middleware: only SysAdmin can access (e.g. report export)
+function requireSysAdmin(request, reply, done) {
+    const role = request.user?.__t;
+    if (role !== 'SysAdmin') {
+        return reply.status(403).send({ error: 'Access denied: SysAdmin only' });
     }
     done();
 }
@@ -59,10 +68,10 @@ export default async function (fastify, opts) {
         }
     });
 
-    // GET /report/export — Export report as PDF or Excel (Admin/Employee only)
+    // GET /report/export — Export report as PDF or Excel (SysAdmin only)
     // Must be defined BEFORE /:id to avoid route conflict
     fastify.get('/report/export', {
-        preHandler: requireAdmin,
+        preHandler: requireSysAdmin,
         schema: {
             tags: ['ticketing'],
             description: 'Generate and export a ticket report (PDF or Excel). Admin/Employee only.',
@@ -89,9 +98,9 @@ export default async function (fastify, opts) {
         }
     });
 
-    // GET / — Get all tickets with filters (Admin/Employee only)
+    // GET / — Get all tickets with filters (SysAdmin only)
     fastify.get('/', {
-        preHandler: requireAdmin,
+        preHandler: requireSysAdmin,
         schema: {
             tags: ['ticketing'],
             description: 'Get all tickets with optional filters. Admin/Employee only.',
@@ -180,34 +189,24 @@ export default async function (fastify, opts) {
         }
     });
 
-    // PATCH /:id/status — Update ticket status (Admin/Employee only)
+    // PATCH /:id/status — Update ticket status (SysAdmin only)
     fastify.patch('/:id/status', {
-        preHandler: requireAdmin,
+        preHandler: requireSysAdmin,
         schema: {
             tags: ['ticketing'],
-            description: 'Update ticket status. Admin/Employee only.',
+            consumes: ['multipart/form-data'],
+            description: 'Update ticket status with description and optional attachment. Admin/Employee only.',
             params: {
                 type: 'object',
                 required: ['id'],
                 properties: {
                     id: { type: 'string' }
                 }
-            },
-            body: {
-                type: 'object',
-                required: ['status'],
-                properties: {
-                    status: { type: 'string', enum: ['Pending', 'In Progress', 'Resolved', 'Closed'] }
-                }
             }
         }
     }, async (request, reply) => {
         try {
-            const ticket = await TicketingFacade.updateTicketStatus(
-                request.params.id,
-                request.body.status,
-                request.user.id
-            );
+            const ticket = await TicketingFacade.updateTicketStatus(request);
             reply.send(ticket);
         } catch (error) {
             if (error instanceof ApiError) {
@@ -217,9 +216,9 @@ export default async function (fastify, opts) {
         }
     });
 
-    // PATCH /:id/close — Close a ticket (Admin/Employee only)
+    // PATCH /:id/close — Close a ticket (SysAdmin only)
     fastify.patch('/:id/close', {
-        preHandler: requireAdmin,
+        preHandler: requireSysAdmin,
         schema: {
             tags: ['ticketing'],
             description: 'Close a ticket. Admin/Employee only.',
