@@ -80,6 +80,29 @@ class UserRoutes {
             },
             this.uploadProfilePicture.bind(this),
         );
+
+        this.fastify.patch(
+            '/preferences',
+            {
+                schema: {
+                    description: 'Update user preferences',
+                    tags: ['User'],
+                    body: {
+                        type: 'object',
+                        properties: {
+                            preferences: {
+                                type: 'object',
+                                properties: {
+                                    fontSize: { type: 'string', enum: ['small', 'medium', 'large', 'extra large'] },
+                                },
+                            },
+                        },
+                        required: ['preferences'],
+                    },
+                },
+            },
+            this.updatePreferences.bind(this),
+        );
     }
 
     async getUser(request, reply) {
@@ -145,6 +168,28 @@ class UserRoutes {
         });
 
         return reply.send(user);
+    }
+
+    async updatePreferences(request, reply) {
+        try {
+            const userId = request.user.id || request.user._id;
+            // The role is stored in __t, default to 'User'
+            const role = request.user.__t || 'User';
+
+            // We pass the partial object to update. `userFactory.update` merges it.
+            const updatedUser = await this.userFactory.update(role.toLowerCase(), userId, {
+                preferences: request.body.preferences
+            });
+
+            return reply.send(updatedUser);
+        } catch (error) {
+            if (error instanceof ApiError) {
+                return reply.status(error.statusCode).send({ error: error.message });
+            } else {
+                request.log.error(error);
+                reply.status(500).send({ error: error.message || 'Something went wrong' });
+            }
+        }
     }
 }
 

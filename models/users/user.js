@@ -28,6 +28,18 @@ const userSchema = new mongoose.Schema({
         enum: ['Male', 'Female', 'Prefer not to say'],
         required: true,
     },
+    preferences: {
+        fontSize: {
+            type: String,
+            enum: ['small', 'medium', 'large', 'extra large'],
+            default: 'medium'
+        },
+        theme: {
+            type: String,
+            enum: ['light', 'dark', 'auto'],
+            default: 'auto'
+        }
+    }
 },
     { timestamps: true });
 
