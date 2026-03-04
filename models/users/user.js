@@ -38,6 +38,40 @@ const userSchema = new mongoose.Schema({
             type: String,
             enum: ['light', 'dark', 'auto'],
             default: 'auto'
+        },
+        accessibility: {
+            highContrast: { type: Boolean, default: false },
+            screenReader: { type: Boolean, default: false },
+            keyboardNav: { type: Boolean, default: false },
+            animationReducer: { type: Boolean, default: false },
+            focusIndicators: { type: Boolean, default: false }
+        },
+        notifications: {
+            newJobApplication: {
+                push: { type: Boolean, default: true },
+                email: { type: Boolean, default: true },
+                inApp: { type: Boolean, default: true }
+            },
+            inAppMessages: {
+                push: { type: Boolean, default: true },
+                email: { type: Boolean, default: true },
+                inApp: { type: Boolean, default: true }
+            },
+            systemUpdates: {
+                push: { type: Boolean, default: true },
+                email: { type: Boolean, default: true },
+                inApp: { type: Boolean, default: true }
+            },
+            quietHours: {
+                enabled: { type: Boolean, default: false },
+                start: { type: String, default: '22:00' },
+                end: { type: String, default: '08:00' }
+            }
+        },
+        privacy: {
+            dataSharing: { type: Boolean, default: true },
+            activityTracking: { type: Boolean, default: true },
+            thirdPartyIntegrations: { type: Boolean, default: true }
         }
     }
 },
