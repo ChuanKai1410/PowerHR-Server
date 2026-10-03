@@ -75,7 +75,7 @@ class AuthController {
     }
 
     async login(email, password) {
-        const user = await this.userFactory.findOne('user', { email });
+        const user = await this.userFactory.findOne('user', { email: email.trim().toLowerCase() });
 
         if (!user) {
             throw new ApiError(401, 'Invalid email or password');
@@ -83,11 +83,7 @@ class AuthController {
 
         const authentication = await Authentication.findOne({ user: user._id });
 
-        if (user?.terminationDate && dayjs(user.terminationDate).isBefore(dayjs())) {
-            await this.userFactory.convert(user.__t, user._id);
-        }
-
-        if (!authentication.active) {
+        if (!authentication?.active) {
             throw new ApiError(401, 'Account not activated');
         }
 
@@ -95,6 +91,10 @@ class AuthController {
 
         if (!correctPassword) {
             throw new ApiError(401, 'Invalid email or password');
+        }
+
+        if (user?.terminationDate && dayjs(user.terminationDate).isBefore(dayjs())) {
+            await this.userFactory.convert(user.__t, user._id);
         }
 
         const userPublic = await this.userFactory.getMe(user._id);

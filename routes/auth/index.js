@@ -20,8 +20,8 @@ class AuthRoutes {
                         type: 'object',
                         required: ['email', 'password'],
                         properties: {
-                            email: { type: 'string' },
-                            password: { type: 'string' },
+                            email: { type: 'string', minLength: 1 },
+                            password: { type: 'string', minLength: 1 },
                         },
                     },
                     response: {
@@ -415,7 +415,7 @@ class AuthRoutes {
                 return reply.status(error.statusCode).send({ error: error.message });
             } else {
                 request.log.error(error);
-                reply.status(500).send({ error: error.message || 'Something went wrong' });
+                reply.status(500).send({ error: 'Something went wrong' });
             }
         }
     }
