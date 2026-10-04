@@ -3,7 +3,11 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const secret = process.env.JWT_SECRET;
+export function getJwtSecret() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || !secret.trim()) throw new Error('JWT_SECRET is required');
+    return secret;
+}
 
 export default class Jwt {
     /**
@@ -13,7 +17,7 @@ export default class Jwt {
      * @returns {string} - JWT token
      */
     static generateToken(payload, expiresIn) {
-        return jwt.sign(payload, secret, { expiresIn });
+        return jwt.sign(payload, getJwtSecret(), { algorithm: 'HS256', expiresIn });
     }
 
     /**
@@ -22,6 +26,6 @@ export default class Jwt {
      * @returns {object} - Decoded token
      */
     static verifyToken(token) {
-        return jwt.verify(token, secret);
+        return jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
     }
 }

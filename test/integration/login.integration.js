@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import Fastify from 'fastify';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import jwtPlugin from '../../plugins/jwt.js';
+import authPlugin from '../../plugins/auth.js';
 import { fixtureDatabase, fixturePassword, seedLoginAccounts } from '../fixtures/login-accounts.js';
 
 // Do not read local credentials or send email during the isolated database tests.
@@ -32,6 +34,8 @@ beforeAll(async () => {
     const { default: routes } = await import('../../routes/auth/index.js');
     ({ default: AuthController } = await import('../../services/auth/authController.js'));
     app = Fastify();
+    await app.register(jwtPlugin);
+    await app.register(authPlugin);
     await app.register(routes, { prefix: '/auth' });
     await app.ready();
 });

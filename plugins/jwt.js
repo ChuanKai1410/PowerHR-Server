@@ -1,18 +1,19 @@
 import jwt from '@fastify/jwt';
 import fp from 'fastify-plugin';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+import { getJwtSecret } from '../util/Jwt.js';
 
 export default fp(async (fastify) => {
     fastify.register(jwt, {
-        secret: JWT_SECRET,
+        secret: getJwtSecret(),
+        verify: { algorithms: ['HS256'] },
         cookie: {
             cookieName: 'token',
             signed: false,
         },
         sign: {
             algorithm: 'HS256',
-            expiresIn: '20s',
+            expiresIn: '1d',
         },
     });
 });

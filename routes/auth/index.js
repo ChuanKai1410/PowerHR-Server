@@ -9,6 +9,21 @@ class AuthRoutes {
     }
 
     initRoutes() {
+        this.fastify.get('/me', {
+            onRequest: this.fastify.requireUser,
+            schema: { tags: ['Auth'], summary: 'Get the current active user' },
+        }, async (request) => {
+            const user = request.principal;
+            return { user: {
+                _id: String(user._id),
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.__t === 'Employee' ? user.jobTitle : user.__t,
+                company: user.company ? String(user.company) : null,
+            } };
+        });
+
         this.fastify.post(
             '/login',
             {
@@ -312,6 +327,7 @@ class AuthRoutes {
         this.fastify.post(
             '/register/sysadmin',
             {
+                onRequest: this.fastify.requireSysAdmin,
                 schema: {
                     description: 'Register an SysAdmin',
                     tags: ['SysAdmins', 'Auth'],
@@ -536,7 +552,7 @@ class AuthRoutes {
     async registerSysAdmin(request, reply) {
         try {
             const data = request.body;
-            const sysadmin = this.authController.register('sysadmin', data);
+            const sysadmin = await this.authController.register('sysadmin', data);
 
             reply.status(201).send({
                 message: 'SysAdmin registered successfully',
@@ -549,7 +565,7 @@ class AuthRoutes {
                 return reply.status(error.statusCode).send({ error: error.message });
             } else {
                 request.log.error(error);
-                reply.status(500).send({ error: error.message || 'Something went wrong' });
+                reply.status(500).send({ error: 'Something went wrong' });
             }
         }
     }

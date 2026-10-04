@@ -6,3 +6,7 @@ package-lock.json
 .vercel
 coverage/
 report/
+
+# Keep project reports outside this repository; only README Markdown is tracked.
+*.[mM][dD]
+![rR][eE][aA][dD][mM][eE].[mM][dD]

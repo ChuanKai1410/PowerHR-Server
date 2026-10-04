@@ -41,7 +41,11 @@ try {
     await mongoose.connect(mongod.getUri(), { dbName: fixtureDatabase });
     await seedLoginAccounts();
     const { default: routes } = await import('../../routes/auth/index.js');
+    const { default: jwtPlugin } = await import('../../plugins/jwt.js');
+    const { default: authPlugin } = await import('../../plugins/auth.js');
     app = Fastify();
+    await app.register(jwtPlugin);
+    await app.register(authPlugin);
     app.addHook('onRequest', async (request, reply) => {
         if (request.method !== 'POST' || request.url !== '/auth/login') {
             return reply.code(404).send({ error: 'Fixture server supports login only' });

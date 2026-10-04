@@ -5,6 +5,10 @@ import ApiError from '../../util/ApiError.js';
 import Applicant from '../../models/users/applicant.js';
 import Employee from '../../models/users/employee.js';
 import SysAdmin from '../../models/users/sysadmin.js';
+import jwtPlugin from '../../plugins/jwt.js';
+import authPlugin from '../../plugins/auth.js';
+
+vi.mock('dotenv', () => ({ default: { config: vi.fn() }, config: vi.fn() }));
 
 const { login } = vi.hoisted(() => ({ login: vi.fn() }));
 
@@ -22,13 +26,17 @@ let app;
 
 beforeEach(async () => {
     login.mockReset();
+    vi.stubEnv('JWT_SECRET', 'isolated-contract-test-secret');
     app = Fastify();
+    await app.register(jwtPlugin);
+    await app.register(authPlugin);
     await app.register(authRoutes, { prefix: '/auth' });
     await app.ready();
 });
 
 afterEach(async () => {
     await app.close();
+    vi.unstubAllEnvs();
 });
 
 describe('Existing login HTTP contract (controller stubbed, not authentication acceptance)', () => {
