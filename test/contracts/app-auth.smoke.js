@@ -27,6 +27,14 @@ test('production autoload protects current identity without querying the databas
 test('production autoload protects SysAdmin provisioning before body validation', async () => {
     assert.equal((await app.inject({ method: 'POST', url: '/auth/register/sysadmin', payload: {} })).statusCode, 401);
 });
+test('production autoload protects password changes before body validation', async () => {
+    const result = await app.inject({
+        method: 'POST',
+        url: '/auth/change-password/000000000000000000000001',
+        payload: {},
+    });
+    assert.equal(result.statusCode, 401);
+});
 test('global optional-header verification rejects non-access JWTs', async () => {
     const token = Jwt.generateToken({ id: '000000000000000000000001', type: 'active' }, '1d');
     assert.equal((await app.inject({ url: '/', headers: { authorization: `Bearer ${token}` } })).statusCode, 401);

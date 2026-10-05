@@ -198,6 +198,9 @@ class AuthController {
     }
 
     async changePassword(id, newPassword, confirmPassword, oldPassword) {
+        if (typeof oldPassword !== 'string' || oldPassword.length === 0) {
+            throw new ApiError(400, 'Current password is required');
+        }
         await this.userFactory.changePassword(id, newPassword, confirmPassword, oldPassword);
 
         return true;

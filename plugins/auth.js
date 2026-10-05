@@ -43,6 +43,18 @@ export default fp(async (fastify) => {
         }
     });
 
+    fastify.decorate('requireSelf', async function (request, reply) {
+        await fastify.requireUser(request, reply);
+        if (reply.sent) return;
+        const id = request.params.id;
+        if (typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id)) {
+            return reply.code(400).send({ error: 'Invalid user ID' });
+        }
+        if (id.toLowerCase() !== String(request.principal._id)) {
+            return reply.code(403).send({ error: 'Forbidden' });
+        }
+    });
+
     fastify.decorate('requireSysAdmin', async function (request, reply) {
         await fastify.requireUser(request, reply);
         if (reply.sent) return;

@@ -10,6 +10,7 @@ import EmploymentHistory from '../../models/users/employmentHistory.js';
 import Email from '../../util/Email.js';
 import dayjs from 'dayjs';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 class UserFactory {
     /**
@@ -170,13 +171,13 @@ class UserFactory {
     }
 
     /**
-     * Finds a user by id and updates it
-     * @param {string} id - The id of the user
+     * Finds an applicant by id and updates it
+     * @param {string} id - The id of the applicant
      * @param {JSON} update - The update information
      * @returns {object} - The updated user
      */
-    async findByIdAndUpdate(id, update) {
-        const user = await User.findByIdAndUpdate(id, update);
+    async findByIdAndUpdateApplicant(id, update) {
+        const user = await Applicant.findByIdAndUpdate(id, update);
 
         return user;
     }
@@ -220,6 +221,12 @@ class UserFactory {
      * @param {string} oldPassword - The old password
      */
     async changePassword(id, newPassword, confirmPassword, oldPassword = null) {
+        if (typeof newPassword !== 'string' || typeof confirmPassword !== 'string') {
+            throw new ApiError(400, 'Password must be a string');
+        }
+        if (Buffer.byteLength(newPassword, 'utf8') > 72) {
+            throw new ApiError(400, 'Password must not exceed 72 UTF-8 bytes');
+        }
         if (newPassword !== confirmPassword) {
             throw new ApiError(400, 'Passwords do not match');
         }
@@ -237,7 +244,14 @@ class UserFactory {
 
         const user = await User.findById(id);
 
-        if (oldPassword) {
+        if (!user) {
+            throw new ApiError(404, 'User not found');
+        }
+
+        if (oldPassword !== null) {
+            if (typeof oldPassword !== 'string' || oldPassword.length === 0) {
+                throw new ApiError(400, 'Current password is required');
+            }
             const compare = await user.comparePassword(oldPassword);
 
             if (!compare) {
@@ -245,7 +259,8 @@ class UserFactory {
             }
         }
 
-        user.password = newPassword;
+        // Hash plaintext even when it starts with the model hook's stored-hash prefix.
+        user.password = await bcrypt.hash(newPassword, 10);
 
         await user.save();
     }
@@ -266,7 +281,13 @@ class UserFactory {
      */
 
     async update(role, id, args) {
-        console.log('Update called with:', { role, id, args });
+        // Passwords belong to change/reset flows, never client-supplied profile updates.
+        if (
+            !args || typeof args !== 'object' || Array.isArray(args) ||
+            Object.keys(args).some((key) => key === 'password' || key.startsWith('$') || key.includes('.'))
+        ) {
+            throw new ApiError(400, 'Invalid profile update');
+        }
     
         let session;
         try {

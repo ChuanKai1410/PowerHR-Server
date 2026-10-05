@@ -17,7 +17,7 @@ class EnterpriseFacade {
 
     //Applicant
     async findByIdAndUpdateApplicant(applicantId, args) {
-        return await this.userFactory.findByIdAndUpdate(applicantId, args);
+        return await this.userFactory.findByIdAndUpdateApplicant(applicantId, args);
     }
 
     // Company

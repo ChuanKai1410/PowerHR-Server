@@ -73,6 +73,16 @@ The role field preserves the existing display label and is not an authorization 
 through a separately reviewed, trusted administrative process. Employee job titles,
 company-admin roles and client/JWT role claims do not grant SysAdmin permission.
 
+`POST /auth/change-password/:id` requires an active access-token identity matching
+`:id`, including for SysAdmin callers. Its existing JSON body is
+`{ oldPassword, newPassword, confirmPassword }`; the current password must be nonempty
+and correct. Missing/invalid sessions return 401, another user's ID returns 403,
+invalid input returns 400, and success remains `{ message: "Password changed" }`.
+New passwords retain the existing strength checks and may not exceed 72 UTF-8 bytes.
+The shared change/reset/activation password writer always hashes plaintext. Generic
+profile updates reject password fields, Mongo update operators and dotted field names.
+Password changes do not revoke existing access tokens; session revocation remains pending.
+
 Other routes are not yet comprehensively protected. Public employee provisioning,
 cross-company ownership, HR entitlements, logout/revocation and client session
 lifecycle remain unfinished. Do not expose this foundation as a production-secure API.
@@ -92,6 +102,14 @@ Dedicated configs bypass the legacy MongoDB test setup. Integration tests use a
 disposable local MongoDB with synthetic accounts and disabled email; its binary
 must be cached or downloadable. They never seed Atlas and do not certify STD cases.
 SysAdmin provisioning tests stub the actual write/email operation.
+Password tests also use a disposable single-node replica set for legacy profile
+transactions. Reset and activation checks stub email delivery; they do not certify
+delivery or the complete browser/device recovery workflow. Application-list tests
+exercise the real creation route and Applicant persistence, including concurrent
+appends. The internal update uses the Applicant discriminator so `appliedJobs` is
+not discarded by the base User schema. Existing missing links are not automatically
+backfilled. Recruitment authorization, duplicate prevention and multi-document
+rollback are not certified by these persistence tests.
 
 The optional fixture server exposes only `POST /auth/login` on `127.0.0.1:3380`.
 Set `POWERHR_FIXTURE_PORT` to use another unused port; stop with Ctrl+C to close

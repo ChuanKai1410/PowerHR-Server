@@ -370,6 +370,7 @@ class AuthRoutes {
         this.fastify.post(
             '/change-password/:id',
             {
+                onRequest: this.fastify.requireSelf,
                 schema: {
                     description: 'Change Password',
                     tags: ['Auth', 'Authentication'],
@@ -385,9 +386,9 @@ class AuthRoutes {
                         type: 'object',
                         required: ['oldPassword', 'newPassword', 'confirmPassword'],
                         properties: {
-                            oldPassword: { type: 'string' },
-                            newPassword: { type: 'string' },
-                            confirmPassword: { type: 'string' },
+                            oldPassword: { type: 'string', minLength: 1 },
+                            newPassword: { type: 'string', minLength: 8 },
+                            confirmPassword: { type: 'string', minLength: 8 },
                         },
                     },
                     response: {
@@ -573,7 +574,7 @@ class AuthRoutes {
     async changePassword(request, reply) {
         try {
             const { oldPassword, newPassword, confirmPassword } = request.body;
-            const { id } = request.params;
+            const id = String(request.principal._id);
 
             await this.authController.changePassword(id, newPassword, confirmPassword, oldPassword);
 
@@ -583,7 +584,7 @@ class AuthRoutes {
                 return reply.status(error.statusCode).send({ error: error.message });
             } else {
                 request.log.error(error);
-                reply.status(500).send({ error: error.message || 'Something went wrong' });
+                reply.status(500).send({ error: 'Something went wrong' });
             }
         }
     }
