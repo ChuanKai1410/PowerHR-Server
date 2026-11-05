@@ -20,6 +20,8 @@ class AuthRoutes {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.__t === 'Employee' ? user.jobTitle : user.__t,
+                accountType: user.__t,
+                jobTitle: user.__t === 'Employee' ? user.jobTitle : null,
                 company: user.company ? String(user.company) : null,
             } };
         });
@@ -511,7 +513,7 @@ class AuthRoutes {
     async registerApplicant(request, reply) {
         try {
             const data = request.body;
-            const applicant = this.authController.register('applicant', data);
+            const applicant = await this.authController.register('applicant', data);
 
             reply.status(201).send({
                 message: 'Applicant registered successfully',
@@ -532,7 +534,7 @@ class AuthRoutes {
     async registerEmployee(request, reply) {
         try {
             const data = request.body;
-            const employee = this.authController.register('employee', data);
+            const employee = await this.authController.register('employee', data);
 
             reply.status(201).send({
                 message: 'Employee registered successfully',

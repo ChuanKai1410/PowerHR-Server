@@ -1,4 +1,5 @@
 import ResumeController from '../../services/resume/resumeController.js';
+import { applicantGuard, resumeOwnerGuard, denyUntilScoped } from '../../util/rbacGuards.js';
 
 class ResumeRoutes {
     constructor(fastify) {
@@ -12,6 +13,8 @@ class ResumeRoutes {
         this.fastify.post(
             '/create',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: applicantGuard,
                 schema: {
                     description: 'Create a new resume',
                     tags: ['Resume'],
@@ -31,6 +34,8 @@ class ResumeRoutes {
         this.fastify.get(
             '/:userId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: applicantGuard,
                 schema: {
                     description: 'Get resume by user ID',
                     tags: ['Resume'],
@@ -50,6 +55,8 @@ class ResumeRoutes {
         this.fastify.get(
             '/',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilScoped,
                 schema: {
                     description: 'Get all resumes',
                     tags: ['Resume'],
@@ -62,6 +69,8 @@ class ResumeRoutes {
         this.fastify.put(
             '/update',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: resumeOwnerGuard,
                 schema: {
                     description: 'Update a resume',
                     tags: ['Resume'],
@@ -81,6 +90,8 @@ class ResumeRoutes {
         this.fastify.delete(
             '/:resumeId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: resumeOwnerGuard,
                 schema: {
                     description: 'Delete a resume by ID',
                     tags: ['Resume'],

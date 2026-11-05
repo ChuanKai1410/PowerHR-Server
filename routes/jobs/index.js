@@ -1,4 +1,5 @@
 import ApiError from '../../util/ApiError.js';
+import { applicantGuard, denyUntilScoped } from '../../util/rbacGuards.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
 
 class JobRoutes {
@@ -88,6 +89,8 @@ class JobRoutes {
         this.fastify.post(
             '/applications',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: applicantGuard,
                 schema: {
                     description: 'Create a new job application',
                     tags: ['Job'],
@@ -107,6 +110,8 @@ class JobRoutes {
         this.fastify.get(
             '/applications/applicant/:userId/list',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: applicantGuard,
                 schema: {
                     description: 'Get all job applications by user',
                     tags: ['Job'],
@@ -125,6 +130,8 @@ class JobRoutes {
         this.fastify.get(
             '/applications/applicant/:applicantId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: applicantGuard,
                 schema: {
                     description: 'Get all job applications by applicant',
                     tags: ['Job'],
@@ -142,6 +149,8 @@ class JobRoutes {
         this.fastify.get(
             '/applications/posting/:postingId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilScoped,
                 schema: {
                     description: 'Get all job applications by posting',
                     tags: ['Job'],
@@ -159,6 +168,8 @@ class JobRoutes {
         this.fastify.put(
             '/applications/:applicationId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilScoped,
                 schema: {
                     description: 'Update a job application',
                     tags: ['Job'],

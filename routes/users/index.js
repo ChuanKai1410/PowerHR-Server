@@ -1,4 +1,5 @@
 import UserFactory from '../../services/users/userFactory.js';
+import { selfGuard, profileUpdateGuard, pictureGuard } from '../../util/rbacGuards.js';
 import ApiError from '../../util/ApiError.js';
 import Firebase from '../../util/Firebase.js';
 import CompanyController from '../../services/enterprise/company/companyController.js';
@@ -16,6 +17,8 @@ class UserRoutes {
         this.fastify.get(
             '/:role/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: selfGuard,
                 schema: {
                     description: 'Get a user by ID',
                     tags: ['User'],
@@ -35,6 +38,8 @@ class UserRoutes {
         this.fastify.put(
             '/:role/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: profileUpdateGuard,
                 schema: {
                     description: 'Update a user by ID',
                     tags: ['User'],
@@ -61,6 +66,8 @@ class UserRoutes {
         this.fastify.post(
             '/upload/profile-picture/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: pictureGuard,
                 schema: {
                     description: 'Upload a profile picture for a user',
                     tags: ['User'],
