@@ -1,3 +1,4 @@
+import { denyUntilResourceScoped } from '../../util/hardeningGuards.js';
 import { denyUntilScoped } from '../../util/rbacGuards.js';
 import { requireCompanyRole, requireCompanyEntity, forbidCompanyReassignment, validateNewEmployeeCompany, validateDepartmentParent } from '../../util/companyScopeGuards.js';
 import ApiError from '../../util/ApiError.js';
@@ -233,7 +234,7 @@ class CompanyRoutes {
             '/employmenthistory',
             {
                 onRequest: this.fastify.requireUser,
-                preHandler: [denyUntilScoped],
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Get employees of a company',
                     tags: ['Company'],
@@ -246,7 +247,7 @@ class CompanyRoutes {
             '/employmenthistory/:id', 
             {
                 onRequest: this.fastify.requireUser,
-                preHandler: [denyUntilScoped],
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Delete an employment history record',
                     tags: ['Company'],

@@ -1,3 +1,4 @@
+import { denyUntilResourceScoped } from '../../util/hardeningGuards.js';
 import DocumentController from '../../services/document/documentController.js';
 import ApiError from '../../util/ApiError.js';
 
@@ -13,6 +14,8 @@ class DocumentRoutes {
         this.fastify.post(
             '/upload',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Upload a document',
                     tags: ['Documents'],
@@ -36,6 +39,8 @@ class DocumentRoutes {
         this.fastify.get(
             '/',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Get all documents',
                     tags: ['Documents']
@@ -48,6 +53,8 @@ class DocumentRoutes {
         this.fastify.get(
             '/department/:department',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Get documents by department',
                     tags: ['Documents'],
@@ -67,6 +74,8 @@ class DocumentRoutes {
         this.fastify.get(
             '/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Get document by ID',
                     tags: ['Documents'],
@@ -86,6 +95,8 @@ class DocumentRoutes {
         this.fastify.put(
             '/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Update document',
                     tags: ['Documents'],
@@ -112,6 +123,8 @@ class DocumentRoutes {
         this.fastify.delete(
             '/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Delete document',
                     tags: ['Documents'],
@@ -131,6 +144,8 @@ class DocumentRoutes {
         this.fastify.get(
             '/download/:id',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Download document by ID from DB',
                     tags: ['Documents'],

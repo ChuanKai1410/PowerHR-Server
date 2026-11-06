@@ -1,3 +1,4 @@
+import { denyUntilResourceScoped, formCreateGuard, formFeedbackReadGuard, formManageReadGuard, formPublishedListGuard, formPublishedReadGuard, formSubmitGuard, formUserGuard } from '../../util/hardeningGuards.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
 
 class FormRoutes {
@@ -11,6 +12,8 @@ class FormRoutes {
         this.fastify.post(
             '/',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formCreateGuard,
                 schema: {
                     description: 'Create a new form',
                     tags: ['Form'],
@@ -32,6 +35,8 @@ class FormRoutes {
         this.fastify.put(
             '/',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Update a form',
                     tags: ['Form'],
@@ -50,6 +55,8 @@ class FormRoutes {
         this.fastify.delete(
             '/:formId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: denyUntilResourceScoped,
                 schema: {
                     description: 'Delete a form',
                     tags: ['Form'],
@@ -68,6 +75,8 @@ class FormRoutes {
         this.fastify.get(
             '/user/:userId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formUserGuard,
                 schema: {
                     description: 'Get forms by user',
                     tags: ['Form'],
@@ -86,6 +95,8 @@ class FormRoutes {
         this.fastify.get(
             '/:formId/snapshot',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formManageReadGuard,
                 schema: {
                     description: 'Get form by id with snapshot',
                     tags: ['Form'],
@@ -104,6 +115,8 @@ class FormRoutes {
         this.fastify.get(
             '/publish/all/:companyId/:userId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formPublishedListGuard,
                 schema: {
                     description: 'Get publish forms by company',
                     tags: ['Form'],
@@ -123,6 +136,8 @@ class FormRoutes {
         this.fastify.get(
             '/publish/:formId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formPublishedReadGuard,
                 schema: {
                     description: 'Get publish form by id',
                     tags: ['Form'],
@@ -141,6 +156,8 @@ class FormRoutes {
         this.fastify.post(
             '/feedbacks/:id/:userId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formSubmitGuard,
                 schema: {
                     description: 'Submit a form',
                     tags: ['Form'],
@@ -167,6 +184,8 @@ class FormRoutes {
         this.fastify.get(
             '/feedbacks/:formId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: formFeedbackReadGuard,
                 schema: {
                     description: 'Get feedbacks by form id',
                     tags: ['Form'],
@@ -227,8 +246,10 @@ class FormRoutes {
             const { userId } = request.params;
 
             const forms = await this.enterpriseFacade.getFormsByUser(userId);
+            // Defensive company filter: collaborator access is not a cross-company grant.
+            const companyForms = forms.filter(form => String(form.company) === String(request.principal.company));
 
-            reply.status(200).send({ forms });
+            reply.status(200).send({ forms: companyForms });
         } catch (error) {
             request.log.error(error);
             reply.status(500).send({ error: 'Something went wrong' });

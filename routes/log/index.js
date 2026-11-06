@@ -1,3 +1,4 @@
+import { companyLogAdmin } from '../../util/hardeningGuards.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
 import ApiError from '../../util/ApiError.js';
 
@@ -12,6 +13,8 @@ class LogRoutes {
         this.fastify.get(
             '/:companyId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: companyLogAdmin,
                 schema: {
                     description: 'Get company logs',
                     tags: ['Log'],
