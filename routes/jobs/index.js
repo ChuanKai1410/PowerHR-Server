@@ -1,3 +1,4 @@
+import { requireHiringRole, createPostingGuard, updatePostingGuard, postingApplicationsGuard, updateApplicationGuard } from '../../util/companyScopeGuards.js';
 import ApiError from '../../util/ApiError.js';
 import { applicantGuard, denyUntilScoped } from '../../util/rbacGuards.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
@@ -13,6 +14,8 @@ class JobRoutes {
         this.fastify.post(
             '/postings',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireHiringRole(), createPostingGuard],
                 schema: {
                     description: 'Create a new job posting',
                     tags: ['Job'],
@@ -35,6 +38,8 @@ class JobRoutes {
         this.fastify.put(
             '/postings/:postingId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireHiringRole(), updatePostingGuard],
                 schema: {
                     description: 'Update a job posting',
                     tags: ['Job'],
@@ -150,7 +155,7 @@ class JobRoutes {
             '/applications/posting/:postingId',
             {
                 onRequest: this.fastify.requireUser,
-                preHandler: denyUntilScoped,
+                preHandler: [requireHiringRole(), postingApplicationsGuard],
                 schema: {
                     description: 'Get all job applications by posting',
                     tags: ['Job'],
@@ -169,7 +174,7 @@ class JobRoutes {
             '/applications/:applicationId',
             {
                 onRequest: this.fastify.requireUser,
-                preHandler: denyUntilScoped,
+                preHandler: [requireHiringRole(), updateApplicationGuard],
                 schema: {
                     description: 'Update a job application',
                     tags: ['Job'],

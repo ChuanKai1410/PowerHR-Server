@@ -1,3 +1,5 @@
+import { denyUntilScoped } from '../../util/rbacGuards.js';
+import { requireCompanyRole, requireCompanyEntity, forbidCompanyReassignment, validateNewEmployeeCompany, validateDepartmentParent } from '../../util/companyScopeGuards.js';
 import ApiError from '../../util/ApiError.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
 import EmploymentHistory from '../../models/users/employmentHistory.js';
@@ -98,6 +100,8 @@ class CompanyRoutes {
         this.fastify.put(
             '/:companyId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), forbidCompanyReassignment],
                 schema: {
                     description: 'Update company',
                     tags: ['Company'],
@@ -116,6 +120,8 @@ class CompanyRoutes {
         this.fastify.get(
             '/:companyId/employees',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole()],
                 schema: {
                     description: 'Get employees of a company',
                     tags: ['Company'],
@@ -127,6 +133,8 @@ class CompanyRoutes {
         this.fastify.post(
             '/:companyId/employees',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), validateNewEmployeeCompany],
                 schema: {
                     description: 'Register an employee',
                     tags: ['Company'],
@@ -138,6 +146,8 @@ class CompanyRoutes {
         this.fastify.put(
             '/:companyId/employees/:employeeId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), requireCompanyEntity('employee'), forbidCompanyReassignment],
                 schema: {
                     description: 'Update an employee',
                     tags: ['Company'],
@@ -149,6 +159,8 @@ class CompanyRoutes {
         this.fastify.get(
             '/:companyId/departments',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole()],
                 schema: {
                     description: 'Get all departments',
                     tags: ['Company'],
@@ -160,6 +172,8 @@ class CompanyRoutes {
         this.fastify.post(
             '/:companyId/departments',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), validateDepartmentParent],
                 schema: {
                     description: 'Create a new department',
                     tags: ['Company'],
@@ -171,6 +185,8 @@ class CompanyRoutes {
         this.fastify.put(
             '/:companyId/departments/:departmentId',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), requireCompanyEntity('department'), forbidCompanyReassignment, validateDepartmentParent],
                 schema: {
                     description: 'Update a department',
                     tags: ['Company'],
@@ -182,6 +198,8 @@ class CompanyRoutes {
         this.fastify.get(
             '/:companyId/analytic/turnover',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole()],
                 schema: {
                     description: 'Get company turnover',
                     tags: ['Company'],
@@ -193,6 +211,8 @@ class CompanyRoutes {
         this.fastify.put(
             '/:companyId/employees/:employeeId/convert',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [requireCompanyRole(['Admin']), requireCompanyEntity('employee')],
                 schema: {
                     description: 'Convert an employee to an applicant',
                     tags: ['Company'],
@@ -212,6 +232,8 @@ class CompanyRoutes {
         this.fastify.get(
             '/employmenthistory',
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [denyUntilScoped],
                 schema: {
                     description: 'Get employees of a company',
                     tags: ['Company'],
@@ -223,6 +245,8 @@ class CompanyRoutes {
         this.fastify.delete(
             '/employmenthistory/:id', 
             {
+                onRequest: this.fastify.requireUser,
+                preHandler: [denyUntilScoped],
                 schema: {
                     description: 'Delete an employment history record',
                     tags: ['Company'],
