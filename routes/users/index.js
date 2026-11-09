@@ -1,4 +1,5 @@
 import UserFactory from '../../services/users/userFactory.js';
+import { applicantProfileGuard, getApplicantProfile, updateApplicantProfile } from '../../util/applicantProfileHandlers.js';
 import { selfGuard, profileUpdateGuard, pictureGuard } from '../../util/rbacGuards.js';
 import ApiError from '../../util/ApiError.js';
 import Firebase from '../../util/Firebase.js';
@@ -14,6 +15,15 @@ class UserRoutes {
     }
 
     initRoutes() {
+        // Phase 4: dedicated self-service Applicant profile endpoints.
+        this.fastify.get('/profile/me', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantProfileGuard,
+        }, getApplicantProfile);
+        this.fastify.patch('/profile/me', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantProfileGuard,
+        }, updateApplicantProfile);
         this.fastify.get(
             '/:role/:id',
             {

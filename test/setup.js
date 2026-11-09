@@ -14,11 +14,21 @@ let mongod;
 
 //Set up database connection before tests
 beforeAll(async () => {
+    console.log('[TEST] Starting MongoMemoryServer...');
+
     mongod = new MongoMemoryServer();
     await mongod.start();
+
+    console.log('[TEST] MongoMemoryServer started');
+
     await mongoose.connect(mongod.getUri());
+
+    console.log('[TEST] Mongoose connected');
+
     await app.ready();
-});
+
+    console.log('[TEST] Fastify ready');
+}, 120000);
 
 afterEach(async () => {
     await mongoose.connection.db.dropDatabase();

@@ -1,3 +1,4 @@
+import { parseDiscoveryQuery, discoverJobs } from '../../util/jobDiscovery.js';
 import { requireHiringRole, createPostingGuard, updatePostingGuard, postingApplicationsGuard, updateApplicationGuard } from '../../util/companyScopeGuards.js';
 import ApiError from '../../util/ApiError.js';
 import { applicantGuard, denyUntilScoped } from '../../util/rbacGuards.js';
@@ -11,6 +12,31 @@ class JobRoutes {
     }
 
     initRoutes() {
+    // Public, read-only job discovery. Does not disclose applicant/HR data.
+    this.fastify.get('/discover', {
+        schema: {
+            tags: ['Job'],
+            summary: 'Search open job postings',
+            querystring: {
+                type: 'object',
+                properties: {
+                    page: { type: 'string' },
+                    limit: { type: 'string' },
+                    search: { type: 'string' },
+                    type: { type: 'string' },
+                },
+            },
+        },
+    }, async (request, reply) => {
+        const parsed = parseDiscoveryQuery(request.query);
+        if (parsed.error) return reply.code(400).send({ error: parsed.error });
+        try {
+            return await discoverJobs(parsed);
+        } catch (error) {
+            request.log.error(error);
+            return reply.code(500).send({ error: 'Unable to load jobs' });
+        }
+    });
         this.fastify.post(
             '/postings',
             {
