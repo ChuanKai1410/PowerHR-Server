@@ -98,6 +98,9 @@ const applicationSchema = mongoose.Schema({
     },
 });
 
+// Enforce one submission per applicant/posting even under concurrent requests.
+applicationSchema.index({ applicant: 1, posting: 1 }, { unique: true, name: 'unique_applicant_posting' });
+
 const Application = mongoose.model('Application', applicationSchema);
 
 export default Application;

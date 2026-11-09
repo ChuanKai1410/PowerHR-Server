@@ -1,3 +1,4 @@
+import { listMyApplicationResumes, myApplicationStatus, applyForJob } from '../../util/applicantApplication.js';
 import { parseDiscoveryQuery, discoverJobs } from '../../util/jobDiscovery.js';
 import { requireHiringRole, createPostingGuard, updatePostingGuard, postingApplicationsGuard, updateApplicationGuard } from '../../util/companyScopeGuards.js';
 import ApiError from '../../util/ApiError.js';
@@ -12,6 +13,27 @@ class JobRoutes {
     }
 
     initRoutes() {
+        // Phase 4 Part 3: authenticated, self-scoped mobile applicant flow.
+        const applicantAction = (handler) => async (request, reply) => {
+            try {
+                return await handler(request, reply);
+            } catch (error) {
+                request.log.error(error);
+                return reply.code(500).send({ error: 'Unable to process application' });
+            }
+        };
+        this.fastify.get('/apply/me/resumes', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantGuard,
+        }, applicantAction(listMyApplicationResumes));
+        this.fastify.get('/apply/me/status/:postingId', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantGuard,
+        }, applicantAction(myApplicationStatus));
+        this.fastify.post('/apply/me', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantGuard,
+        }, applicantAction(applyForJob));
     // Public, read-only job discovery. Does not disclose applicant/HR data.
     this.fastify.get('/discover', {
         schema: {
