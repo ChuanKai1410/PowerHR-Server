@@ -1,3 +1,4 @@
+import { listMyApplications, getMyApplicationDetails } from '../../util/applicationTracking.js';
 import { listMyApplicationResumes, myApplicationStatus, applyForJob } from '../../util/applicantApplication.js';
 import { parseDiscoveryQuery, discoverJobs } from '../../util/jobDiscovery.js';
 import { requireHiringRole, createPostingGuard, updatePostingGuard, postingApplicationsGuard, updateApplicationGuard } from '../../util/companyScopeGuards.js';
@@ -13,6 +14,23 @@ class JobRoutes {
     }
 
     initRoutes() {
+        // Phase 4 Part 4: Applicant-only, token-owned application tracking.
+        const trackingAction = (handler) => async (request, reply) => {
+            try {
+                return await handler(request, reply);
+            } catch (error) {
+                request.log.error(error);
+                return reply.code(500).send({ error: 'Unable to load applications' });
+            }
+        };
+        this.fastify.get('/tracking/me', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantGuard,
+        }, trackingAction(listMyApplications));
+        this.fastify.get('/tracking/me/:applicationId', {
+            onRequest: this.fastify.requireUser,
+            preHandler: applicantGuard,
+        }, trackingAction(getMyApplicationDetails));
         // Phase 4 Part 3: authenticated, self-scoped mobile applicant flow.
         const applicantAction = (handler) => async (request, reply) => {
             try {
