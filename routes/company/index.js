@@ -1,6 +1,7 @@
 import { denyUntilResourceScoped } from '../../util/hardeningGuards.js';
 import { denyUntilScoped } from '../../util/rbacGuards.js';
 import { requireCompanyRole, requireCompanyEntity, forbidCompanyReassignment, validateNewEmployeeCompany, validateDepartmentParent } from '../../util/companyScopeGuards.js';
+import { employeeCompanyOverview, employeeCompanyDepartments } from '../../util/employeeCompanyOverview.js';
 import ApiError from '../../util/ApiError.js';
 import EnterpriseFacade from '../../services/enterprise/enterpriseFacade.js';
 import EmploymentHistory from '../../models/users/employmentHistory.js';
@@ -13,6 +14,14 @@ class CompanyRoutes {
     }
 
     initRoutes() {
+        // Phase 5 Part 2: self-scoped, read-only company data. Never takes a company ID from the client.
+        this.fastify.get('/mobile/me/overview', {
+            onRequest: this.fastify.requireUser,
+        }, employeeCompanyOverview);
+        this.fastify.get('/mobile/me/departments', {
+            onRequest: this.fastify.requireUser,
+        }, employeeCompanyDepartments);
+
         this.fastify.post(
             '/register',
             {
