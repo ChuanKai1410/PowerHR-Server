@@ -1,3 +1,4 @@
+import { hrMobileGuard, listHrPostings, listHrPostingApplications, updateHrApplicationStatus } from '../../util/hrRecruitmentMobile.js';
 import { listMyApplications, getMyApplicationDetails } from '../../util/applicationTracking.js';
 import { listMyApplicationResumes, myApplicationStatus, applyForJob } from '../../util/applicantApplication.js';
 import { parseDiscoveryQuery, discoverJobs } from '../../util/jobDiscovery.js';
@@ -14,6 +15,23 @@ class JobRoutes {
     }
 
     initRoutes() {
+        // Phase 5 Part 3: database-authenticated, company-scoped HR mobile operations.
+        const hrMobileAction = (handler) => async (request, reply) => {
+            try { return await handler(request, reply); }
+            catch (error) {
+                request.log.error(error);
+                return reply.code(500).send({ error: 'Unable to process recruitment request' });
+            }
+        };
+        this.fastify.get('/hr/mobile/postings', {
+            onRequest: this.fastify.requireUser, preHandler: hrMobileGuard,
+        }, hrMobileAction(listHrPostings));
+        this.fastify.get('/hr/mobile/postings/:postingId/applications', {
+            onRequest: this.fastify.requireUser, preHandler: hrMobileGuard,
+        }, hrMobileAction(listHrPostingApplications));
+        this.fastify.patch('/hr/mobile/postings/:postingId/applications/:applicationId/status', {
+            onRequest: this.fastify.requireUser, preHandler: hrMobileGuard,
+        }, hrMobileAction(updateHrApplicationStatus));
         // Phase 4 Part 4: Applicant-only, token-owned application tracking.
         const trackingAction = (handler) => async (request, reply) => {
             try {
